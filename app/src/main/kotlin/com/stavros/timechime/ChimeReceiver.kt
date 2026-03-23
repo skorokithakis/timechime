@@ -26,7 +26,7 @@ private const val LONG_BEEP_MS = 400
 private const val GAP_BETWEEN_BEEPS_MS = 100
 
 private const val SAMPLE_RATE_HZ = 44100
-private const val TONE_FREQUENCY_HZ = 14000.0
+private const val TONE_FREQUENCY_HZ = 15000.0
 
 // Generates a PCM 16-bit mono sine wave buffer at TONE_FREQUENCY_HZ for the given duration,
 // plays it via AudioTrack in MODE_STATIC (which auto-stops when the buffer is exhausted),
