@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive icon foreground layer. Canvas is 108x108dp; the safe zone for
+    visible content is the inner 72x72dp (18dp inset on each side).
+
+    The Material Design "notifications" icon is defined on a 24x24 viewport.
+    The group scales it 3x (to fill the 72dp safe zone) and translates it 18dp
+    on each axis to center it within the 108dp canvas. pivotX/Y=0 ensures the
+    scale origin is the top-left corner of the icon, so translate+scale places
+    it exactly in the safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Clock circle. -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
+
+    <!-- Hour hand (pointing to 12). -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,54L54,38" />
+
+    <!-- Minute hand (pointing to 2). -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,54L65,42" />
+
+    <!-- Center dot. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+
+</vector>
