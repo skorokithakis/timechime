@@ -133,6 +133,13 @@ fun TimeChimeScreen(initialRunning: Boolean = false) {
                     fontSize = 24.sp,
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { playBeepSequence(3) }) {
+                Text(
+                    text = "Test",
+                    fontSize = 24.sp,
+                )
+            }
             if (isRunning) {
                 Spacer(modifier = Modifier.height(16.dp))
                 val minutes = secondsUntilChime / 60

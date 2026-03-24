@@ -26,12 +26,12 @@ private const val LONG_BEEP_MS = 400
 private const val GAP_BETWEEN_BEEPS_MS = 100
 
 private const val SAMPLE_RATE_HZ = 44100
-private const val TONE_FREQUENCY_HZ = 15000.0
+private const val TONE_FREQUENCY_HZ = 10000.0
 
 // Generates a PCM 16-bit mono sine wave buffer at TONE_FREQUENCY_HZ for the given duration,
 // plays it via AudioTrack in MODE_STATIC (which auto-stops when the buffer is exhausted),
 // and schedules a release on the provided handler after the duration elapses.
-private fun playBeep(durationMs: Int, handler: Handler) {
+internal fun playBeep(durationMs: Int, handler: Handler) {
     val sampleCount = SAMPLE_RATE_HZ * durationMs / 1000
     val buffer = ShortArray(sampleCount) { index ->
         val angle = 2.0 * PI * TONE_FREQUENCY_HZ * index / SAMPLE_RATE_HZ
@@ -64,6 +64,28 @@ private fun playBeep(durationMs: Int, handler: Handler) {
     handler.postDelayed({ track.release() }, durationMs.toLong())
 }
 
+// Plays `count` short beeps in-process from the UI thread. Creates its own Handler so it
+// can be called from anywhere without needing an existing looper reference. No wake lock or
+// PendingResult is involved — this is purely for in-process use (e.g. the test button).
+internal fun playBeepSequence(count: Int) {
+    val handler = Handler(Looper.getMainLooper())
+    scheduleBeepsOnHandler(handler, count, 0L)
+}
+
+private fun scheduleBeepsOnHandler(handler: Handler, remaining: Int, delayMillis: Long) {
+    if (remaining <= 0) return
+
+    handler.postDelayed({
+        playBeep(SHORT_BEEP_MS, handler)
+    }, delayMillis)
+
+    scheduleBeepsOnHandler(
+        handler = handler,
+        remaining = remaining - 1,
+        delayMillis = delayMillis + SHORT_BEEP_MS + GAP_BETWEEN_BEEPS_MS,
+    )
+}
+
 class ChimeReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -88,46 +110,15 @@ class ChimeReceiver : BroadcastReceiver() {
                 pendingResult.finish()
             }, LONG_BEEP_MS.toLong())
         } else {
-            // Play `count` short beeps with gaps between them.
-            scheduleBeeps(
-                handler = handler,
-                wakeLock = wakeLock,
-                pendingResult = pendingResult,
-                remaining = count,
-                delayMillis = 0L,
-            )
-        }
-
-        scheduleNextChimeAlarm(context)
-    }
-
-    private fun scheduleBeeps(
-        handler: Handler,
-        wakeLock: PowerManager.WakeLock,
-        pendingResult: PendingResult,
-        remaining: Int,
-        delayMillis: Long,
-    ) {
-        if (remaining == 0) {
-            // All beeps have been scheduled; release resources after the last beep finishes.
+            // Schedule `count` short beeps, then release resources after the last one finishes.
+            val totalDurationMs = (count * SHORT_BEEP_MS + (count - 1) * GAP_BETWEEN_BEEPS_MS).toLong()
+            playBeepSequence(count)
             handler.postDelayed({
                 wakeLock.release()
                 pendingResult.finish()
-            }, delayMillis)
-            return
+            }, totalDurationMs)
         }
 
-        handler.postDelayed({
-            playBeep(SHORT_BEEP_MS, handler)
-        }, delayMillis)
-
-        scheduleBeeps(
-            handler = handler,
-            wakeLock = wakeLock,
-            pendingResult = pendingResult,
-            remaining = remaining - 1,
-            // The next beep starts after this beep finishes plus the inter-beep gap.
-            delayMillis = delayMillis + SHORT_BEEP_MS + GAP_BETWEEN_BEEPS_MS,
-        )
+        scheduleNextChimeAlarm(context)
     }
 }
